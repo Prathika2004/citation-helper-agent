@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>🤖 Citation Agent</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+    body { background: #f5f7fa; font-family: Arial, sans-serif; }
+    .chat-container { max-width: 800px; margin: 40px auto; background: #fff; border-radius: 15px; padding: 20px; box-shadow: 0px 4px 12px rgba(0,0,0,0.1); }
+    .chat-box { height: 500px; overflow-y: auto; padding: 10px; border: 1px solid #ddd; border-radius: 10px; background: #fafafa; }
+    .msg { margin: 10px 0; padding: 10px 15px; border-radius: 12px; max-width: 80%; }
+    .user-msg { background: #007bff; color: white; margin-left: auto; }
+    .bot-msg { background: #ecf0f1; color: #2c3e50; margin-right: auto; }
+    .input-area { display: flex; margin-top: 15px; }
+    .input-area textarea { flex: 1; border-radius: 10px; resize: none; }
+    .input-area button { margin-left: 10px; border-radius: 10px; }
+    .citation-box { background: #fff8dc; padding: 8px; border-radius: 8px; margin-top: 5px; }
+  </style>
+</head>
+<body>
+  <div class="chat-container">
+    <h2 class="text-center">🤖 Citation Agent</h2>
+    <p class="text-center text-muted">Chat with the bot to generate citations & related papers</p>
+
+    <!-- Chat Window -->
+    <div id="chatBox" class="chat-box"></div>
+
+    <!-- Input -->
+    <div class="input-area">
+      <textarea id="inputText" rows="2" class="form-control" placeholder="Enter book/article text..."></textarea>
+      <button class="btn btn-primary" onclick="sendMessage()">Send</button>
+    </div>
+  </div>
+
+  <script>
+    const chatBox = document.getElementById("chatBox");
+
+    function addMessage(text, type="bot") {
+      const msg = document.createElement("div");
+      msg.classList.add("msg", type === "user" ? "user-msg" : "bot-msg");
+      msg.innerHTML = text;
+      chatBox.appendChild(msg);
+      chatBox.scrollTop = chatBox.scrollHeight;
+    }
+
+    async function sendMessage() {
+      const text = document.getElementById("inputText").value.trim();
+      if (!text) return;
+
+      // Show user message
+      addMessage(text, "user");
+      document.getElementById("inputText").value = "";
+
+      // Show bot typing...
+      const typingMsg = document.createElement("div");
+      typingMsg.classList.add("msg", "bot-msg");
+      typingMsg.innerHTML = "⏳ Generating citation...";
+      chatBox.appendChild(typingMsg);
+      chatBox.scrollTop = chatBox.scrollHeight;
+
+      try {
+        const response = await fetch("http://127.0.0.1:8000/generate-citation", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ text })
+        });
+
+        const data = await response.json();
+
+        chatBox.removeChild(typingMsg);
+
+        let reply = `<b>Generated Citation (${data.style}):</b>
+          <div class="citation-box">${data.citation}</div>
+          <b>📚 Related Papers:</b><ul>`;
+        data.related.forEach(p => {
+          reply += `<li><b>${p.title}</b> (${p.year})<br>
+            <i>${p.authors}</i><br>
+            <small>Citation: ${p.citation}</small><br>
+            <a href="${p.url}" target="_blank">🔗 View</a></li><br>`;
+        });
+        reply += "</ul>";
+
+        addMessage(reply, "bot");
+
+      } catch (err) {
+        console.error(err);
+        chatBox.removeChild(typingMsg);
+        addMessage("❌ Error generating citation. Please try again.", "bot");
+      }
+    }
+  </script>
+</body>
+</html>

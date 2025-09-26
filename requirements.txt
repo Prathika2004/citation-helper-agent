@@ -1,0 +1,4 @@
+huggingface_hub
+python-dotenv
+requests
+lxml
