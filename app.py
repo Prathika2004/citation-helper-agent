@@ -17,8 +17,6 @@ HF_TOKEN = os.getenv("HF_TOKEN")
 SCRAPEDO_API_KEY = os.getenv("SCRAPEDO_API_KEY")
 PUBMED_API_KEY = os.getenv("PUBMED_API_KEY")
 GOOGLE_BOOKS_API_KEY = os.getenv("GOOGLE_BOOKS_API_KEY")
-OPENALEX_API_KEY = "prathikamuthu2004@gmail.com"
-
 if not HF_TOKEN:
     print("❌ ERROR: Missing HF_TOKEN in .env file!")
     exit()
